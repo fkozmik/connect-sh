@@ -24,6 +24,7 @@ Help()
     echo "options:"
     echo "h     Print this Help."
     echo "l     List known connections."
+    echo "s     Select another shell for the docker connection."
     echo "c     Connect to a client."
     echo "g     Generate a new connection in .ssh/config."
     echo
@@ -66,13 +67,21 @@ launchConnection()
 sshConnection()
 {
     echo -n "Connecting to ${Name}."
+    echo
     ssh "${Name}"
 }
 
 dockerConnection()
 { 
-    echo -n "Connecting to ${Name}."
-    docker exec -it "${Name}" bash
+    if [ -z ${Shell} ]; then
+        echo -n "Connecting to ${Name}."
+        echo
+        docker exec -it "${Name}" bash
+    else
+        echo -n "Connecting to ${Name} with ${Shell}."
+        echo
+        docker exec -it "${Name}" "${Shell}"
+    fi
 }
 
 getVariablesForCreation()
@@ -112,7 +121,7 @@ createConnection()
 # Process the input options.                               #
 ############################################################
 # Get the options
-while getopts ":lghc:" option; do
+while getopts ":lghs:c:" option; do
     case $option in
         h) # display Help
             Help
@@ -124,6 +133,9 @@ while getopts ":lghc:" option; do
             Name=${OPTARG}
             launchConnection
             exit;;
+        s) # Set another shell for docker
+            Shell=${OPTARG}
+            ;;
         g) # create a new connection
             getVariablesForCreation
             exit;;
